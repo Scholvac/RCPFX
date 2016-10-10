@@ -136,7 +136,7 @@ public class AnchorFX_layout extends Application {
 			}
 		};
 		LayoutWriter ss = new LayoutWriter();
-		LayoutData ld = ss.saveStation(station, identifier);
+		LayoutData ld = LayoutWriter.saveStation(station, identifier);
 		try{
 			XStream stream = new XStream();
 			stream.toXML(ld, new FileOutputStream(new File(file)));

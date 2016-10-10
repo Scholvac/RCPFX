@@ -7,6 +7,7 @@ import java.util.Collection;
 import de.sos.rcp.RCPApplication;
 import de.sos.rcp.mgr.WindowManager;
 import de.sos.rcp.ui.editor.EditorFileAssociation;
+import javafx.beans.property.ObjectProperty;
 import javafx.event.EventHandler;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
@@ -22,9 +23,10 @@ public class WorkspaceControl extends VBox
 {
 
 	private ContextMenu mContextMenu = new ContextMenu();
+	private TreeView<File> fileView;
 
-	public WorkspaceControl(File rootDirectory){
-		TreeView<File> fileView = new TreeView<File>(new SimpleFileTreeItem(rootDirectory));
+	public WorkspaceControl(ObjectProperty<File> rootDir){
+		fileView = new TreeView<File>(new SimpleFileTreeItem(rootDir.get()));
 		fileView.setCellFactory(new Callback<TreeView<File>, TreeCell<File>>() {				
 			@Override
 			public TreeCell<File> call(TreeView<File> param) {
@@ -60,7 +62,27 @@ public class WorkspaceControl extends VBox
 			Menu ow = createOpenWithMenu(file);
 			if (ow != null)
 				mContextMenu.getItems().add(ow);
+		}else{
+			Menu wm = createNewWizardMenu(file);
+			if (wm != null)
+				mContextMenu.getItems().add(wm);
 		}
+	}
+
+	private Menu createNewWizardMenu(File file) {
+		Collection<String> newWizards = RCPApplication.getWizardManager().getWizardsByCategorie("New");
+		if (newWizards != null && newWizards.isEmpty() == false){
+			Menu m = new Menu("New");
+			for (String w : newWizards){
+				MenuItem item = new MenuItem(w);
+				item.setOnAction(e->{
+					RCPApplication.getWizardManager().showWizard("New", w);
+				});
+				m.getItems().add(item);
+			}
+			return m;
+		}
+		return null;
 	}
 
 	private Menu createOpenWithMenu(File file) {
@@ -70,7 +92,8 @@ public class WorkspaceControl extends VBox
 			for (String edt : editors){
 				MenuItem item = new MenuItem(edt);
 				item.setOnAction(e->{
-					WindowManager wm = RCPApplication.getInstance().getWindowManager();
+					RCPApplication.getInstance();
+					WindowManager wm = RCPApplication.getWindowManager();
 					wm.openFileEditor(edt, file);
 				});
 				m.getItems().add(item);
@@ -78,5 +101,9 @@ public class WorkspaceControl extends VBox
 			return m;
 		}
 		return null;
+	}
+	
+	public TreeView<File> getTreeView() {
+		return fileView;
 	}
 }

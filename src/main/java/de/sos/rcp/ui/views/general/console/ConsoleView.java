@@ -13,7 +13,8 @@ public class ConsoleView extends AbstractView implements IView {
 	
 	
 	static void register(){
-		register(RCPApplication.getInstance().getWindowManager());
+		RCPApplication.getInstance();
+		register(RCPApplication.getWindowManager());
 	}
 	
 	public static void register(WindowManager windowManager) {

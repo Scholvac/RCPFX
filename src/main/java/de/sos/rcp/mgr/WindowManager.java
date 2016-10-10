@@ -1,12 +1,14 @@
 package de.sos.rcp.mgr;
 
 import java.io.File;
+import java.io.ObjectOutputStream.PutField;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map.Entry;
 
-import javax.swing.UIDefaults;
+import org.reactfx.EventSource;
+import org.w3c.dom.events.UIEvent;
 
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.node.DockNode.DockPosition;
@@ -22,12 +24,47 @@ import de.sos.rcp.ui.IEditor;
 import de.sos.rcp.ui.IUIElement;
 import de.sos.rcp.ui.IView;
 import de.sos.rcp.ui.editor.AbstractFileEditor;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.stage.Stage;
 
-public class WindowManager {
 
+/**
+ * Pushes WindowManagerEvent, when a new IView or IEditor has been created
+ * this allows the application to configure a new created instance 
+ * <code>
+ * getWindowManager().filter(e->{return e.clazz == ModelEditor.class;}).subscribe(s-> {
+			ModelEditor me = (ModelEditor)s.element;
+			... //do something with the editor
+		});
+ * </code>
+ * @author sschweigert
+ *
+ */
+public class WindowManager extends EventSource<WindowManager.WindowManagerEvent>{
+
+	public enum WindowManagerEventType {
+		OPEN_EDITOR, 
+		OPEN_VIEW, 
+		CLOSE_EDITOR,
+		CLOSE_VIEW,
+		ACTIVATE_EDITOR,
+		DEACTIVATE_EDITOR
+	}
+	public static class WindowManagerEvent {
+		public final WindowManagerEventType			eventType;
+		public final Class<? extends IUIElement> 	clazz;
+		public final String		 					type;
+		public final IUIElement						element;
+		public WindowManagerEvent(WindowManagerEventType evt, Class<? extends IUIElement> cl, String type, IUIElement element) {
+			super();
+			eventType = evt;
+			this.clazz = cl;
+			this.type = type;
+			this.element = element;
+		}
+	}
 	private class UIDescriptor {
 		String						group;
 		String						type;
@@ -35,13 +72,27 @@ public class WindowManager {
 	private class ViewDescriptor extends UIDescriptor {
 		Class<? extends IView>		clazz;
 		DockPosition				preferedPosition = DockPosition.CENTER;
+		
+		@Override
+		public String toString() {
+			return "View: " + type + " Group: " + group + " Class: " + clazz;
+		}
 	}
 	
 	private class EditorDescriptor extends UIDescriptor {
 		Class<? extends IEditor>		clazz;
+		
+		@Override
+		public String toString() {
+			return "Editor: " + type + " Group: " + group + " Class: " + clazz;
+		}
 	}
 
-	private static final String OPEN_EDITOR_FILE_LIST = "WindowManager.OpenEditorFileList";
+	private static final String OPEN_EDITOR_FILE_LIST 				= "WindowManager.OpenEditorFileList";
+	private static final String WINDOW_LOCATION_PROPERTY_X 			= "WindowManager.Scene.Location.X";
+	private static final String WINDOW_LOCATION_PROPERTY_Y 			= "WindowManager.Scene.Location.Y";
+	private static final String WINDOW_LOCATION_PROPERTY_W 			= "WindowManager.Scene.Location.W";
+	private static final String WINDOW_LOCATION_PROPERTY_H 			= "WindowManager.Scene.Location.H";
 	
 	private DockStation 								mRootStation;
 	private DockSubStation 								mEditorStation;
@@ -60,7 +111,8 @@ public class WindowManager {
 		mEditorStation.disableDockCapability();
 		mEditorStation.dock(station, DockPosition.CENTER);
 		
-		MenuManager mmgr = RCPApplication.getInstance().getMenuManager();
+		RCPApplication.getInstance();
+		MenuManager mmgr = RCPApplication.getMenuManager();
 		//Register menus to open a new View
 		for (String g : mViewDescriptors.keySet()){
 			String path = "Windows.Views."+g;
@@ -74,16 +126,33 @@ public class WindowManager {
 			}
 		}
 		
-		List<String> openList = RCPApplication.getInstance().getPropertyManager().get(OPEN_EDITOR_FILE_LIST, new ArrayList<String>());
+		RCPApplication.getInstance();
+		List<String> openList = RCPApplication.getPropertyManager().get(OPEN_EDITOR_FILE_LIST, new ArrayList<String>());
 		if (openList.isEmpty() == false){
 			for (String str : openList){
-				String[] tmp = str.split("#");
-				String type = tmp[0];
-				File file = new File(tmp[1]);
-				openFileEditor(type, file);
+				try{
+					String[] tmp = str.split("#");
+					String type = tmp[0];
+					File file = new File(tmp[1]);
+					openFileEditor(type, file);
+				}catch(Exception e){
+					RCPLog.error("Failed to load file: " + str + " with error: " + e.getMessage());
+					e.printStackTrace();
+				}
 			}
 		}
 		
+		double x = RCPApplication.getPropertyManager().get(WINDOW_LOCATION_PROPERTY_X, -1.0);
+		double y = RCPApplication.getPropertyManager().get(WINDOW_LOCATION_PROPERTY_Y, -1.0);
+		double w = RCPApplication.getPropertyManager().get(WINDOW_LOCATION_PROPERTY_W, 1024.0);
+		double h = RCPApplication.getPropertyManager().get(WINDOW_LOCATION_PROPERTY_H, 768.0);
+		
+		if (x > 0 && y > 0){
+			mPrimaryStage.setX(x);
+			mPrimaryStage.setY(y);
+		}
+		mPrimaryStage.setWidth(w);
+		mPrimaryStage.setHeight(h);
 	}
 	
 	protected DockNode createDockNode(IUIElement element){
@@ -95,6 +164,32 @@ public class WindowManager {
 			public void handle(Event event) {
 				if (event.getEventType() == DockNodeEvent.DOCK_NODE_CLOSING) {
 					element.onClose();
+					WindowManagerEventType t = WindowManagerEventType.CLOSE_VIEW;
+					if (element instanceof IEditor){
+						t = WindowManagerEventType.CLOSE_EDITOR;
+					}
+					try{
+						push(new WindowManagerEvent(t, element.getClass(), element.getType(), element));
+					}catch(Exception e){
+						RCPLog.error(e.getMessage());
+						e.printStackTrace();
+					}
+				}else if (event.getEventType() == DockNodeEvent.BRING_TO_FRONT && element instanceof IEditor){
+					WindowManagerEventType t = WindowManagerEventType.ACTIVATE_EDITOR;
+					try{
+						push(new WindowManagerEvent(t, element.getClass(), element.getType(), element));
+					}catch(Exception e){
+						RCPLog.error(e.getMessage());
+						e.printStackTrace();
+					}
+				}else if (event.getEventType() == DockNodeEvent.BRING_TO_BACK && element instanceof IEditor){
+					WindowManagerEventType t = WindowManagerEventType.DEACTIVATE_EDITOR;
+					try{
+						push(new WindowManagerEvent(t, element.getClass(), element.getType(), element));
+					}catch(Exception e){
+						RCPLog.error(e.getMessage());
+						e.printStackTrace();
+					}
 				}
 			};
 		});
@@ -111,7 +206,9 @@ public class WindowManager {
 				return null;
 			}
 			DockNode dock = createDockNode(view);
+			
 			//TODO: register additional listener for activate/deactivate/focus/...
+			this.push(new WindowManagerEvent(WindowManagerEventType.OPEN_VIEW, vd.clazz, vd.type, view));
 			return dock;
 		} catch (InstantiationException | IllegalAccessException e) {
 			e.printStackTrace();
@@ -134,6 +231,15 @@ public class WindowManager {
 		vd.preferedPosition = position;
 		if (mViewDescriptors.get(group) == null)
 			mViewDescriptors.put(group, new ArrayList<>());
+		ViewDescriptor ex = null;
+		for (ViewDescriptor ex_vd : mViewDescriptors.get(group))
+			if (ex_vd.type.equals(type)){
+				ex = ex_vd;break;
+			}
+		if (ex != null){
+			RCPLog.debug("Replace View Descriptor: " + ex + " with: " + vd);
+			mViewDescriptors.get(group).remove(ex);
+		}
 		mViewDescriptors.get(group).add(vd);
 	}
 	public void registerEditor(Class<? extends IEditor> class1, String type, String group) {
@@ -141,6 +247,15 @@ public class WindowManager {
 		vd.clazz = class1; vd.type = type; vd.group = group;
 		if (mEditorDescriptors.get(group) == null)
 			mEditorDescriptors.put(group, new ArrayList<>());
+		EditorDescriptor ex = null;
+		for (EditorDescriptor ex_vd : mEditorDescriptors.get(group))
+			if (ex_vd.type.equals(type)){
+				ex = ex_vd;break;
+			}
+		if (ex != null){
+			RCPLog.debug("Replace Editor Descriptor: " + ex + " with: " + vd);
+			mEditorDescriptors.get(group).remove(ex);
+		}
 		mEditorDescriptors.get(group).add(vd);
 	}
 
@@ -175,6 +290,7 @@ public class WindowManager {
 			IEditor editor = ed.clazz.newInstance();
 			DockNode dn = createDockNode(editor);
 			dn.dock(mEditorStation, DockPosition.CENTER);
+			this.push(new WindowManagerEvent(WindowManagerEventType.OPEN_EDITOR, ed.clazz, ed.type, editor));
 			
 			if (editor instanceof AbstractFileEditor){
 				AbstractFileEditor afe = (AbstractFileEditor)editor;
@@ -206,7 +322,13 @@ public class WindowManager {
 				fileEditors.add(t+"#"+f);
 			}
 		}
-		RCPApplication.getInstance().getPropertyManager().put(OPEN_EDITOR_FILE_LIST, fileEditors);
+		RCPApplication.getInstance();
+		RCPApplication.getPropertyManager().put(OPEN_EDITOR_FILE_LIST, fileEditors);
+		
+		RCPApplication.getPropertyManager().put(WINDOW_LOCATION_PROPERTY_X, mRootStation.getScene().getWindow().getX());
+		RCPApplication.getPropertyManager().put(WINDOW_LOCATION_PROPERTY_Y, mRootStation.getScene().getWindow().getY());
+		RCPApplication.getPropertyManager().put(WINDOW_LOCATION_PROPERTY_W, mRootStation.getScene().getWindow().getWidth());
+		RCPApplication.getPropertyManager().put(WINDOW_LOCATION_PROPERTY_H, mRootStation.getScene().getWindow().getHeight());
 	}
 
 	public void dockEditor(DockNode dn) {

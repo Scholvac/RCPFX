@@ -21,7 +21,6 @@ import de.sos.rcp.RCPApplication;
 import de.sos.rcp.action.AbstractAction;
 import de.sos.rcp.log.RCPLog;
 import de.sos.rcp.ui.IEditor;
-import de.sos.rcp.ui.IUIElement;
 import de.sos.rcp.ui.IView;
 import javafx.scene.control.TextInputDialog;
 
@@ -36,17 +35,21 @@ public class LayoutManager implements INodeSerializer, INodeDeserializer {
 
 
 	public void initialize() {
-		mLayoutDirectory = RCPApplication.getInstance().getPropertyManager().get(LAYOUT_DIRECTORY_PROPERTY, new File("layouts"));
+		RCPApplication.getInstance();
+		mLayoutDirectory = RCPApplication.getPropertyManager().get(LAYOUT_DIRECTORY_PROPERTY, new File("layouts"));
 		reloadLayouts();
-		RCPApplication.getInstance().getMenuManager().addMenuAction("Windows.Layouts.Save", new AbstractAction("Save Layout") {
+		RCPApplication.getInstance();
+		RCPApplication.getMenuManager().addMenuAction("Windows.Layouts.Save", new AbstractAction("Save Layout") {
 			@Override
 			public void execute() {
 				saveCurrentLayout();
 				reloadLayouts();
 			}
 		});
-		if (RCPApplication.getInstance().getPropertyManager().hasProperty(CURRENT_LAYOUT_PROPERTY)){
-			openLayout(RCPApplication.getInstance().getPropertyManager().get(CURRENT_LAYOUT_PROPERTY));
+		RCPApplication.getInstance();
+		if (RCPApplication.getPropertyManager().hasProperty(CURRENT_LAYOUT_PROPERTY)){
+			RCPApplication.getInstance();
+			openLayout(RCPApplication.getPropertyManager().get(CURRENT_LAYOUT_PROPERTY));
 		}
 	}
 	
@@ -64,7 +67,8 @@ public class LayoutManager implements INodeSerializer, INodeDeserializer {
 			for (String n : files){
 				File f = new File(mLayoutDirectory + "/" + n);
 				n = n.replace(".layout", "");
-				RCPApplication.getInstance().getMenuManager().addMenuAction("Windows.Layouts."+n, new AbstractAction("Open Layout") {
+				RCPApplication.getInstance();
+				RCPApplication.getMenuManager().addMenuAction("Windows.Layouts."+n, new AbstractAction("Open Layout") {
 					@Override
 					public void execute() {
 						openLayout(f);
@@ -76,12 +80,15 @@ public class LayoutManager implements INodeSerializer, INodeDeserializer {
 	
 	
 	public void openLayout(File f) {
+		if (f == null)
+			return ;
 		RCPLog.info("Loading Layout: " + f);
 		
 		XStream xs = new XStream();
 		try {
 			LayoutData ld = (LayoutData) xs.fromXML(new FileInputStream(f));
-			DockStation station = RCPApplication.getInstance().getWindowManager().getRootStation();
+			RCPApplication.getInstance();
+			DockStation station = RCPApplication.getWindowManager().getRootStation();
 			LayoutReader.restore(station, ld, this);
 			mCurrentLayout = f;
 		} catch (FileNotFoundException e) {
@@ -99,7 +106,8 @@ public class LayoutManager implements INodeSerializer, INodeDeserializer {
 
 		Optional<String> result = dialog.showAndWait();
 		if (result.isPresent()) {
-			WindowManager wmgr = RCPApplication.getInstance().getWindowManager();
+			RCPApplication.getInstance();
+			WindowManager wmgr = RCPApplication.getWindowManager();
 			LayoutData ld = LayoutWriter.saveStation(wmgr.getRootStation(), this);
 			File outFile = new File(mLayoutDirectory + "/" + result.get() + ".layout");
 			if (outFile.getParentFile().exists() == false)
@@ -119,7 +127,8 @@ public class LayoutManager implements INodeSerializer, INodeDeserializer {
 	
 	@Override
 	public Object createIdentifier(DockNode dn) {
-		if (dn == RCPApplication.getInstance().getWindowManager().getEditorStation()){
+		RCPApplication.getInstance();
+		if (dn == RCPApplication.getWindowManager().getEditorStation()){
 			return "#EditorStation#";
 		}else{
 			Object userData = dn.getUserData();
@@ -144,24 +153,28 @@ public class LayoutManager implements INodeSerializer, INodeDeserializer {
 					return existing;
 			}
 		}
-		if (id.equals("#EditorStation#"))
-			return RCPApplication.getInstance().getWindowManager().getEditorStation();
-		else
-			return RCPApplication.getInstance().getWindowManager().createDockNodeByType(id);
+		if (id.equals("#EditorStation#")) {
+			RCPApplication.getInstance();
+			RCPApplication.getInstance();
+			return RCPApplication.getWindowManager().getEditorStation();
+		} else
+			return RCPApplication.getWindowManager().createDockNodeByType(id);
 	}
 
 	@Override
 	public void handleRemainingNodes(ArrayList<DockNode> existingNodes) {
 		for (DockNode dn : existingNodes){
 			if (dn.getUserData() != null && dn.getUserData() instanceof IEditor){
-				RCPApplication.getInstance().getWindowManager().dockEditor(dn);
+				RCPApplication.getInstance();
+				RCPApplication.getWindowManager().dockEditor(dn);
 			}
 		}
 	}
 
 
 	public void close() {
-		PropertyManager pm = RCPApplication.getInstance().getPropertyManager();
+		RCPApplication.getInstance();
+		PropertyManager pm = RCPApplication.getPropertyManager();
 		pm.put(CURRENT_LAYOUT_PROPERTY, mCurrentLayout);
 	}
 

@@ -15,6 +15,7 @@ import de.sos.rcp.mgr.WindowManager;
 import de.sos.rcp.mgr.WizardManager;
 import de.sos.rcp.ui.editors.text.TextFileEditor;
 import de.sos.rcp.ui.views.general.console.ConsoleView;
+import de.sos.rcp.ui.views.general.properties.PropertiesView;
 import de.sos.rcp.ui.views.general.workspace.WorkspaceView;
 import javafx.application.Application;
 import javafx.event.EventHandler;
@@ -32,6 +33,25 @@ public class RCPApplication extends Application {
 
 	private static RCPApplication theInstance;
 	public static RCPApplication getInstance(){return theInstance;}
+	
+	
+	public static SelectionManager getSelectionManager() {
+		return getInstance().mSelectionManager;
+	}
+	public static WindowManager getWindowManager() {
+		return getInstance().mWindowManager;
+	}
+
+	public static MenuManager getMenuManager() {
+		return getInstance().mMenuManager;
+	}
+	public static PropertyManager getPropertyManager(){
+		return getInstance().mPropertyManager;
+	}
+	public static WizardManager getWizardManager() {
+		return getInstance().mWizardManager;
+	}
+	
 
 	private DockStation mRootStation;
 	
@@ -61,6 +81,7 @@ public class RCPApplication extends Application {
 		initialize();
 		
 		mSelectionManager.initialize();
+		mWizardManager.initialize();
 		mWindowManager.initialize(mRootStation, primaryStage);
 		mLayoutManager.initialize();
 		mMenuManager.initialize();
@@ -87,18 +108,20 @@ public class RCPApplication extends Application {
 
 
 	protected void initialize() {
-		mMenuManager.addMenuAction("File.Quit", new AbstractAction("Quit"){ public void execute(){ quitApplication(); }});
+		mMenuManager.addMenuAction("File.Quit", new AbstractAction("Quit"){ @Override
+		public void execute(){ quitApplication(); }});
 		
 		ConsoleView.register(mWindowManager);
 		WorkspaceView.register(mWindowManager);
+		PropertiesView.register(mWindowManager);
 		
 		TextFileEditor.register(mWindowManager);
 	}
 	protected void saveState() {
 		if (mPropertyManager.get("Application.SaveState", true)){
-			mWindowManager.close();
-			mLayoutManager.close();
-			mPropertyManager.save();
+			try{mWindowManager.close();}catch(Exception e){e.printStackTrace();}
+			try{mLayoutManager.close();}catch(Exception e){e.printStackTrace();}
+			try{mPropertyManager.save();}catch(Exception e){e.printStackTrace();}
 		}
 	}
 	public void quitApplication() {
@@ -107,14 +130,10 @@ public class RCPApplication extends Application {
 		System.exit(0);		
 	}
 
-	public WindowManager getWindowManager() {
-		return mWindowManager;
-	}
 
-	public MenuManager getMenuManager() {
-		return mMenuManager;
-	}
-	public PropertyManager getPropertyManager(){
-		return mPropertyManager;
-	}
+	
+
+
+
+	
 }

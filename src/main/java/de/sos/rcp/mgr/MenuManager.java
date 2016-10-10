@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import de.sos.rcp.action.AbstractAction;
 import de.sos.rcp.action.IAction;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -13,6 +14,7 @@ import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
+import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Menu;
 import javafx.scene.control.MenuBar;
 import javafx.scene.control.MenuItem;
@@ -138,6 +140,23 @@ public class MenuManager {
 		return getMenu(removeFirstSegment(qn), menu);
 	}
 
+	private Menu getMenu(ContextMenu cm, List<String> qn) {
+		String f = qn.get(0);
+		for (MenuItem m : cm.getItems()){
+			if (m.getText().equals(f)){
+				if (qn.size() == 1)
+					return (Menu)m;
+				else
+					return getMenu(removeFirstSegment(qn), (Menu)m);
+			}
+		}
+		Menu menu = new Menu(f);
+		cm.getItems().add(menu);
+		if (qn.size() == 1)
+			return menu;
+		return getMenu(removeFirstSegment(qn), menu);
+	}
+	
 	private Menu getMenu(List<String> qn, Menu parent) {
 		String f = qn.get(0);
 		for (MenuItem m : parent.getItems()){
@@ -155,6 +174,40 @@ public class MenuManager {
 		return getMenu(removeFirstSegment(qn), menu);
 	}
 	
+	
+	public void populate(ContextMenu cm) {
+		cm.getItems().clear();
+		
+		List<MenuAction> actions = getSortedActions(mMenuActions);
+		for (final MenuAction a : actions){
+			if (a.action.activeProperty().get() == false)
+				continue;
+			String path = a.path;
+			List<String> qn = qualifiedName(path);
+			MenuItem item = new MenuItem(lastSegment(qn));
+			item.setOnAction(new EventHandler<ActionEvent>() {				
+				@Override
+				public void handle(ActionEvent event) {
+					a.action.execute();
+				}
+			});
+			a.action.enableProperty().addListener(new ChangeListener<Boolean>() {
+				@Override
+				public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+					item.setDisable(!newValue);
+				}
+			});
+			
+			if (qn.size() == 1){
+				cm.getItems().add(item);
+			}else{
+				Menu menu = getMenu(cm, removeLastSegment(qn));
+				menu.getItems().add(item);
+			}
+		}
+	}
+	
+
 	public void rebuildMenuBar() {
 		if (mMenuBar == null)
 			return ;
@@ -211,4 +264,31 @@ public class MenuManager {
 		}
 		
 	}
+
+	public void removeAction(AbstractAction action) {
+		removeMenuAction(action);
+		removeToolbarAction(action);
+	}
+
+	public void removeToolbarAction(AbstractAction action) {
+		if (removeAction(mToolbarActions, action))
+			rebuildToolbar();
+	}
+
+	public void removeMenuAction(AbstractAction action) {
+		if (removeAction(mMenuActions, action))
+			rebuildMenuBar();
+	}
+
+	private boolean removeAction(List<MenuAction> list, AbstractAction action) {
+		for (MenuAction e : list){
+			if (e.action == action){
+				list.remove(e);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	
 }

@@ -1,8 +1,6 @@
 package de.sos.rcp.ui.impl;
 
 import de.sos.rcp.ui.IEditor;
-import javafx.scene.Node;
-import javafx.stage.Stage;
 
 public abstract class AbstractEditor extends AbstractUIElement implements IEditor {
 

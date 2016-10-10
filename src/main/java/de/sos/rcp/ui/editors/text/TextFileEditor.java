@@ -3,7 +3,6 @@ package de.sos.rcp.ui.editors.text;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
@@ -21,13 +20,13 @@ import de.sos.rcp.ui.IEditor;
 import de.sos.rcp.ui.editor.AbstractFileEditor;
 import de.sos.rcp.ui.editor.EditorFileAssociation;
 import javafx.scene.Node;
-import javafx.scene.web.HTMLEditor;
 import javafx.stage.Stage;
 
 public class TextFileEditor extends AbstractFileEditor implements IEditor {
 
 	public static void register(){
-		register(RCPApplication.getInstance().getWindowManager());
+		RCPApplication.getInstance();
+		register(RCPApplication.getWindowManager());
 	}
 	
 	public static void register(WindowManager windowManager) {

@@ -1,8 +1,6 @@
 package de.sos.rcp.action;
 
-import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ReadOnlyBooleanWrapper;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Node;
 
 public abstract class AbstractAction implements IAction {
@@ -36,6 +34,7 @@ public abstract class AbstractAction implements IAction {
 		if (b) activate();
 		else deactivate();
 	}
+	@Override
 	public ReadOnlyBooleanWrapper activeProperty(){ return mActive;}
 	
 	public void enable() {
@@ -44,6 +43,7 @@ public abstract class AbstractAction implements IAction {
 	public void disable(){
 		mEnabled.set(false);
 	}
+	@Override
 	public ReadOnlyBooleanWrapper enableProperty(){ return mEnabled;}
 	
 	

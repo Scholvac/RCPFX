@@ -12,10 +12,8 @@ import de.sos.rcp.action.AbstractAction;
 import de.sos.rcp.ui.impl.AbstractEditor;
 import javafx.event.Event;
 import javafx.event.EventHandler;
-import javafx.scene.Node;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
-import javafx.stage.Stage;
 
 public abstract class AbstractFileEditor extends AbstractEditor {
 
@@ -39,11 +37,12 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 	public AbstractFileEditor(File file, String type, String uuid) {
 		super(file != null ? file.getName() : "", type, uuid);
 		setFile(file);
-		RCPApplication.getInstance().getMenuManager().addMenuAction("File.Save", "File.Quit", "File.New", mSaveAction);
-		RCPApplication.getInstance().getMenuManager().addMenuAction("File.SaveAs", "File.Save", null, mSaveAsAction);
+
+		RCPApplication.getMenuManager().addMenuAction("File.Save", "File.Quit", "File.New", mSaveAction);
+		RCPApplication.getMenuManager().addMenuAction("File.SaveAs", "File.Save", null, mSaveAsAction);
 		
-		RCPApplication.getInstance().getMenuManager().addToolbarAction("Save", mSaveAction);
-		RCPApplication.getInstance().getMenuManager().addToolbarAction("SaveAs", mSaveAsAction);
+		RCPApplication.getMenuManager().addToolbarAction("Save", mSaveAction);
+		RCPApplication.getMenuManager().addToolbarAction("SaveAs", mSaveAsAction);
 	}
 
 	
@@ -62,6 +61,7 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 	public void setDockNode(DockNode dock) {
 		super.setDockNode(dock);
 		dock.addEventFilter(DockNodeEvent.FOCUS, new EventHandler<Event>() {
+			@Override
 			public void handle(Event event) {
 				if (event.getEventType() == DockNodeEvent.BRING_TO_BACK)
 					onEditorDeactivated();
@@ -81,6 +81,13 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 		mSaveAsAction.activate();
 	}
 
+	@Override
+	public void onClose() {
+		mSaveAction.deactivate();
+		mSaveAsAction.deactivate();
+//		RCPApplication.getMenuManager().removeAction(mSaveAction);
+//		RCPApplication.getMenuManager().removeAction(mSaveAsAction);
+	}
 
 
 	public void setFile(File file) {
@@ -118,6 +125,7 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 		super.onGainFocus();
 	}
 	
+	@Override
 	protected void onLostFocus() {
 		super.onLostFocus();
 	};
