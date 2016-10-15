@@ -4,9 +4,13 @@ import java.util.UUID;
 
 import com.anchorage.docks.node.DockNode;
 
+import de.sos.rcp.RCPApplication;
+import de.sos.rcp.mgr.PropertyManager;
 import de.sos.rcp.ui.IUIElement;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.scene.Node;
+import javafx.stage.Stage;
 
 public abstract class AbstractUIElement implements IUIElement
 {
@@ -40,9 +44,40 @@ public abstract class AbstractUIElement implements IUIElement
 	public String getType() {
 		return mType;
 	}
+	
+	public Node createFXNode(Stage primaryStage){
+		Node n = getFXNode(primaryStage);
+		if (n != null){
+			PropertyManager memento = RCPApplication.getPropertyManager().get("UIElement."+getType()+"Properties", new PropertyManager(null));
+			restoreProperties(memento);
+		}
+		return n;
+	}
 
+	
+	protected abstract Node getFXNode(Stage primaryStage);
+	
+	/**
+	 * Override this method to restore properties of the ui element
+	 * @param memento ui type dependent block in the global memory
+	 * @warn the memento is unique only for the type of uiElement, if different views of same type should be stored, that has to be done 
+	 * by the UIElement itself
+	 * @note this method is called direct after the javafx node has been created. 
+	 */
+	protected void restoreProperties(PropertyManager memento) {}
+	
 	@Override
-	public void onClose() {	}
+	public void onClose() {	
+		PropertyManager memento = RCPApplication.getPropertyManager().get("UIElement."+getType()+"Properties", new PropertyManager(null));
+		saveProperties(memento);
+	}
+	/**
+	 * Override this method to save the current state of the view and to restore it the next time
+	 * @param memento view type dependend block in the global memory
+	 * @warn the memento is unique only for the type of view, if different views of same type should be stored, that has to be done 
+	 * by the view itself
+	 */
+	protected void saveProperties(PropertyManager memento) { }
 	
 	@Override
 	public void setDockNode(DockNode dock) {

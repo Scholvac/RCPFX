@@ -100,23 +100,39 @@ public class RCPApplication extends Application {
 		primaryStage.setOnCloseRequest(new EventHandler<WindowEvent>() {
 			@Override
 			public void handle(WindowEvent event) {
-				saveState();
+				close();
 			}
 		});
 	}
 
+	
 
 
-	protected void initialize() {
-		mMenuManager.addMenuAction("File.Quit", new AbstractAction("Quit"){ @Override
-		public void execute(){ quitApplication(); }});
-		
+
+	protected void initializeViews(){
 		ConsoleView.register(mWindowManager);
 		WorkspaceView.register(mWindowManager);
 		PropertiesView.register(mWindowManager);
 		
 		TextFileEditor.register(mWindowManager);
 	}
+
+
+	protected void initialize() {
+		mMenuManager.addMenuAction("File.Quit", new AbstractAction("Quit"){ 
+			@Override
+			public void execute(){ 
+				quitApplication(); 
+			}
+		});
+		
+		initializeViews();
+	}
+	
+	protected void close() {
+		saveState();
+	}
+	
 	protected void saveState() {
 		if (mPropertyManager.get("Application.SaveState", true)){
 			try{mWindowManager.close();}catch(Exception e){e.printStackTrace();}
@@ -126,7 +142,7 @@ public class RCPApplication extends Application {
 	}
 	public void quitApplication() {
 		RCPLog.info("Close application");
-		saveState();
+		close();
 		System.exit(0);		
 	}
 

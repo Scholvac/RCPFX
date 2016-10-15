@@ -1,5 +1,7 @@
 package de.sos.rcp.ui.impl;
 
+import de.sos.rcp.RCPApplication;
+import de.sos.rcp.mgr.PropertyManager;
 import de.sos.rcp.ui.IView;
 
 public abstract class AbstractView extends AbstractUIElement implements IView {
@@ -16,4 +18,8 @@ public abstract class AbstractView extends AbstractUIElement implements IView {
 		super(title);
 	}
 
+	
+	
+
+	
 }

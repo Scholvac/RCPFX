@@ -14,6 +14,9 @@ public class PropertyManager {
 	
 	HashMap<String, Object>		mValues = new HashMap<String, Object>();
 
+	public PropertyManager(){
+		
+	}
 	public PropertyManager(File path){
 		mPropertyFile = path;
 		load();

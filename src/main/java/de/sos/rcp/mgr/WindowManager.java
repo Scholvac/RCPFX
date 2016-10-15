@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.ObjectOutputStream.PutField;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 
@@ -102,7 +103,7 @@ public class WindowManager extends EventSource<WindowManager.WindowManagerEvent>
 	private HashMap<String, List<EditorDescriptor>> 	mEditorDescriptors = new HashMap<String, List<EditorDescriptor>>(); //[group, descriptor]
 	
 
-	
+	private IEditor 									mActiveEditor;
 
 	public void initialize(DockStation station, Stage primaryStage) {
 		mRootStation = station;
@@ -156,10 +157,12 @@ public class WindowManager extends EventSource<WindowManager.WindowManagerEvent>
 	}
 	
 	protected DockNode createDockNode(IUIElement element){
-		DockNode dock = AnchorageSystem.createDock(element.getTitle(), element.getFXNode(mPrimaryStage));
+		DockNode dock = AnchorageSystem.createDock(element.getTitle(), element.createFXNode(mPrimaryStage));
 		dock.setUserData(element);
 		element.setDockNode(dock);
 		dock.addEventHandler(DockNodeEvent.ANY, new EventHandler<Event>() {
+			
+
 			@Override
 			public void handle(Event event) {
 				if (event.getEventType() == DockNodeEvent.DOCK_NODE_CLOSING) {
@@ -177,6 +180,7 @@ public class WindowManager extends EventSource<WindowManager.WindowManagerEvent>
 				}else if (event.getEventType() == DockNodeEvent.BRING_TO_FRONT && element instanceof IEditor){
 					WindowManagerEventType t = WindowManagerEventType.ACTIVATE_EDITOR;
 					try{
+						mActiveEditor = (IEditor)element;
 						push(new WindowManagerEvent(t, element.getClass(), element.getType(), element));
 					}catch(Exception e){
 						RCPLog.error(e.getMessage());
@@ -185,6 +189,15 @@ public class WindowManager extends EventSource<WindowManager.WindowManagerEvent>
 				}else if (event.getEventType() == DockNodeEvent.BRING_TO_BACK && element instanceof IEditor){
 					WindowManagerEventType t = WindowManagerEventType.DEACTIVATE_EDITOR;
 					try{
+						push(new WindowManagerEvent(t, element.getClass(), element.getType(), element));
+					}catch(Exception e){
+						RCPLog.error(e.getMessage());
+						e.printStackTrace();
+					}
+				}else if (event.getEventType() == DockNodeEvent.DOCK_NODE_DOCKED && element instanceof IEditor){
+					WindowManagerEventType t = WindowManagerEventType.ACTIVATE_EDITOR;
+					try{
+						mActiveEditor = (IEditor)element;
 						push(new WindowManagerEvent(t, element.getClass(), element.getType(), element));
 					}catch(Exception e){
 						RCPLog.error(e.getMessage());
@@ -329,10 +342,25 @@ public class WindowManager extends EventSource<WindowManager.WindowManagerEvent>
 		RCPApplication.getPropertyManager().put(WINDOW_LOCATION_PROPERTY_Y, mRootStation.getScene().getWindow().getY());
 		RCPApplication.getPropertyManager().put(WINDOW_LOCATION_PROPERTY_W, mRootStation.getScene().getWindow().getWidth());
 		RCPApplication.getPropertyManager().put(WINDOW_LOCATION_PROPERTY_H, mRootStation.getScene().getWindow().getHeight());
+		
+		//close editors
+		
+		while(mEditorStation.getSubStation().getNodes().isEmpty() == false){
+			DockNode dn = mEditorStation.getSubStation().getNodes().iterator().next();
+			dn.undock();
+		}
+		//close views
+		while(mRootStation.getNodes().isEmpty() == false){
+			mRootStation.getNodes().iterator().next().undock();
+		}
 	}
 
 	public void dockEditor(DockNode dn) {
 		dn.dock(mEditorStation, DockPosition.CENTER);
+	}
+
+	public IEditor getActiveEditor() {
+		return mActiveEditor;
 	}
 
 }

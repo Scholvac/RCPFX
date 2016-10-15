@@ -11,7 +11,7 @@ public interface IUIElement
 	String getUniqueID();
 	String getType();
 	
-	Node getFXNode(Stage mPrimaryStage);
+	Node createFXNode(Stage primaryStage);
 	
 	void onClose();
 	
