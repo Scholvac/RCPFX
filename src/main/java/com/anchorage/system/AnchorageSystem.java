@@ -23,6 +23,7 @@
  */
 package com.anchorage.system;
 
+import com.anchorage.docks.containers.interfaces.DockContainer;
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.node.ui.DockUIPanel;
 import com.anchorage.docks.stations.DockStation;
@@ -41,10 +42,10 @@ import javafx.scene.image.Image;
  */
 public class AnchorageSystem {
 
-    private static final List<DockStation> stations;
-    private static DockNode nodeInDragging;
-    private static final Image emptyIconImage;
-    private static final Image emptySubstationIconImage;
+    private static final List<DockStation> 	stations;
+    private static DockNode 				nodeInDragging;
+    private static final Image 				emptyIconImage;
+    private static final Image 				emptySubstationIconImage;
 
     private static DockStation currentStationFromDrag;
 
@@ -84,8 +85,7 @@ public class AnchorageSystem {
     }
 
     public static void installDefaultStyle() {
-        StyleManager.getInstance()
-                .addUserAgentStylesheet("AnchorFX.css");
+        StyleManager.getInstance().addUserAgentStylesheet("AnchorFX.css");
     }
 
     public static void prepareDraggingZoneFor(DockStation station, DockNode source) {
@@ -124,6 +124,34 @@ public class AnchorageSystem {
                 currentStationFromDrag.finalizeDrag();
             }
         }
-
     }
+    
+    
+    public static DockStation getStation(DockNode node){
+    	if (node == null || node.stationProperty() == null)
+    		return null;
+    	return node.stationProperty().get();
+    }
+    public static DockStation getStation(DockContainer container){
+    	if (container == null)
+    		return null;
+    	if (container instanceof DockStation)
+    		return (DockStation)container;
+    	return getStation(container.getParentContainer());
+    }
+
+	public static DockStation getStation(DockNode dockNode, DockContainer container) {
+		DockStation ds = getStation(dockNode);
+		if (ds == null)
+			ds = getStation(container);
+		if (ds != null)
+			return ds;
+		if (ds == null){
+			for (DockStation s : stations){
+				if (s.getNodes().contains(dockNode))
+					return s;
+			}
+		}
+		return null;
+	}
 }

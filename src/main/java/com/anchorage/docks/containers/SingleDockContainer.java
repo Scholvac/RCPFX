@@ -31,6 +31,8 @@ import com.anchorage.docks.containers.interfaces.DockContainer;
 import com.anchorage.docks.containers.subcontainers.DockSplitterContainer;
 import com.anchorage.docks.containers.subcontainers.DockTabberContainer;
 import com.anchorage.docks.node.DockNode;
+import com.anchorage.docks.node.events.DockNodeEvent;
+
 import javafx.scene.Node;
 import javafx.scene.layout.StackPane;
 
@@ -45,6 +47,7 @@ public class SingleDockContainer extends StackPane implements DockContainer {
         if (getChildren().isEmpty()) {
             getChildren().add(node);
             node.setParentContainer(this);
+			node.fireEvent(new DockNodeEvent(node, DockNodeEvent.BRING_TO_FRONT));
         } else {
             manageSubContainers(node, position, percentage);
         }
@@ -77,8 +80,9 @@ public class SingleDockContainer extends StackPane implements DockContainer {
     @Override
     public void insertNode(Node node, int index) {
         getChildren().set(index, node);
-
         ((DockContainableComponent) node).setParentContainer(this);
+        if (node instanceof DockNode)
+        	node.fireEvent(new DockNodeEvent((DockNode)node, DockNodeEvent.BRING_TO_FRONT));
     }
 
     @Override
@@ -95,6 +99,9 @@ public class SingleDockContainer extends StackPane implements DockContainer {
 
         if (DockCommons.isABorderPosition(position)) {
             getChildren().remove(existNode);
+            if (existNode instanceof DockNode)
+            	existNode.fireEvent(new DockNodeEvent((DockNode) existNode, DockNodeEvent.BRING_TO_BACK));
+            
             DockSplitterContainer splitter = DockCommons.createSplitter(existNode, node, position, percentage);
             getChildren().add(splitter);
             splitter.setParentContainer(this);
@@ -104,6 +111,9 @@ public class SingleDockContainer extends StackPane implements DockContainer {
             tabber.putDock(node, DockNode.DockPosition.CENTER, percentage);
         } else {
             getChildren().remove(existNode);
+            if (existNode instanceof DockNode)
+            	existNode.fireEvent(new DockNodeEvent((DockNode) existNode, DockNodeEvent.BRING_TO_BACK));
+                        
             DockTabberContainer tabber = DockCommons.createTabber(existNode, node, position);
             getChildren().add(tabber);
             tabber.setParentContainer(this);

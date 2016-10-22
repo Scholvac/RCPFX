@@ -57,12 +57,15 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 					((DockNode)newValue.getContent()).fireEvent(new DockNodeEvent((DockNode)newValue.getContent(), DockNodeEvent.BRING_TO_FRONT));
 			}
 		});
+		setTabClosingPolicy(TabClosingPolicy.UNAVAILABLE);
 	}
 	
     @Override
     public void putDock(DockNode node, DockNode.DockPosition position, double percentage) {
         Tab newTab = new Tab(node.getContent().titleProperty().get());
         newTab.closableProperty().bind(node.closeableProperty());
+//        if (node.getContent() != null && node.getContent().titleProperty() != null)
+//        	node.getContent().titleProperty().bind(newTab.textProperty());
         newTab.textProperty().bind(node.getContent().titleProperty());
         getTabs().add(newTab);
         newTab.setContent(node);
@@ -103,6 +106,12 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
             DockContainableComponent containableComponent = node;
             if (containableComponent.getParentContainer() != this) {
                 Tab newTab = new Tab(node.getContent().titleProperty().get());
+                
+                newTab.closableProperty().bind(node.closeableProperty());
+//                if (node.getContent() != null && node.getContent().titleProperty() != null)
+//                	node.getContent().titleProperty().bind(newTab.textProperty());
+                newTab.textProperty().bind(node.getContent().titleProperty());
+                
                 newTab.closableProperty().bind(node.closeableProperty());
                 getTabs().add(newTab);
                 newTab.setContent(node);
@@ -195,11 +204,11 @@ public final class DockTabberContainer extends TabPane implements DockContainer 
 
     public void ensureVisibility(DockNode node) {
     	Tab current = getSelectionModel().getSelectedItem();
-    	if (current.getContent() instanceof DockNode)
-    		((DockNode)current.getContent()).fireEvent(new DockNodeEvent(((DockNode)current.getContent()), DockNodeEvent.BRING_TO_BACK));
+//    	if (current.getContent() instanceof DockNode)
+//    		((DockNode)current.getContent()).fireEvent(new DockNodeEvent(((DockNode)current.getContent()), DockNodeEvent.BRING_TO_BACK));
         Tab tabNode = getTabByNode(node);
         getSelectionModel().select(tabNode);
-        ((DockNode)current.getContent()).fireEvent(new DockNodeEvent(((DockNode)current.getContent()), DockNodeEvent.BRING_TO_FRONT));
+//        ((DockNode)current.getContent()).fireEvent(new DockNodeEvent(((DockNode)current.getContent()), DockNodeEvent.BRING_TO_FRONT));
     }
     
     @Override

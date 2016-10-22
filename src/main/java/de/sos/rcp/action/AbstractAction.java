@@ -45,6 +45,9 @@ public abstract class AbstractAction implements IAction {
 	}
 	@Override
 	public ReadOnlyBooleanWrapper enableProperty(){ return mEnabled;}
+	public void setLabel(String string) {
+		mLabel = string;		
+	}
 	
 	
 
