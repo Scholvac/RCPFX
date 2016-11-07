@@ -19,11 +19,19 @@ public abstract class AbstractWizard implements IWizard
 	private String				mTitle = null;
 	private String				mType = null;
 	
+	private Object				mUserData = null;
+	
 	protected AbstractWizard(String name, String type) {
 		mTitle = name;
 		mType = type;
 		mSelection = RCPApplication.getSelectionManager().last();
 	}
+	
+	@Override
+	public void setUserData(Object userdata) {
+		mUserData = userdata;
+	}
+	public Object getUserData(){ return mUserData;}
 	
 	@Override
 	public void show() {

@@ -32,4 +32,12 @@
 		</dependency>
 
 	</dependencies>
+
+
+	<distributionManagement>
+		<snapshotRepository>
+			<id>nexus</id>
+			<url>http://ems.informatik.uni-oldenburg.de:3195/nexus/content/repositories/emirDev</url>
+		</snapshotRepository>
+	</distributionManagement>
 </project>

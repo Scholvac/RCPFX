@@ -76,7 +76,7 @@ public class WorkspaceControl extends VBox
 			for (String w : newWizards){
 				MenuItem item = new MenuItem(w);
 				item.setOnAction(e->{
-					RCPApplication.getWizardManager().showWizard("New", w);
+					RCPApplication.getWizardManager().showWizard("New", w, null);
 				});
 				m.getItems().add(item);
 			}

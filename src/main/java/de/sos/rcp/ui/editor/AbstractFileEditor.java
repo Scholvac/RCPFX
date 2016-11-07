@@ -93,7 +93,7 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 	public void setFile(File file) {
 		mFile = file;
 		if (mFile != null)
-			mSaveAction.setLabel("Save_"+mFile.getName());
+			mSaveAction.setLabel("Save");
 		if (file != null)
 			mDockNode.getContent().titleProperty().set(file.getName());
 	}

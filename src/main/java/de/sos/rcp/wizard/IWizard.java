@@ -4,4 +4,6 @@ public interface IWizard {
 
 	
 	public void show();
+
+	public void setUserData(Object userdata);
 }

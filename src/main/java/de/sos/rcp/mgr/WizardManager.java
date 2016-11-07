@@ -47,7 +47,7 @@ public class WizardManager {
 				
 				@Override
 				public void execute() {
-					showWizard("New", w);
+					showWizard("New", w, null);
 				}
 			});
 		}
@@ -55,23 +55,24 @@ public class WizardManager {
 	}
 
 
-	public void showWizard(String categorie, String type) {
+	public void showWizard(String categorie, String type, Object userdata) {
 		if (mWizardDescriptions.containsKey(categorie) == false){
 			RCPLog.error("Could not find Wizard Categorie: " + categorie);
 			return ;
 		}
 		for (WizardDescription wd : mWizardDescriptions.get(categorie)){
 			if (wd.name.equals(type)){
-				showWizard(wd);
+				showWizard(wd, userdata);
 				return ;
 			}
 		}
 	}
 
 
-	private void showWizard(WizardDescription wd) {
+	private void showWizard(WizardDescription wd, Object userdata) {
 		try {
 			IWizard wizard = wd.wizardClass.newInstance();
+			wizard.setUserData(userdata);
 			wizard.show();
 		} catch (InstantiationException | IllegalAccessException e) {
 			RCPLog.error("Failed to show wizard: " + wd.name + " Error: " + e.getMessage());
