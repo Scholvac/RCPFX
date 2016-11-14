@@ -7,6 +7,7 @@ import com.anchorage.system.AnchorageSystem;
 
 import de.sos.rcp.action.AbstractAction;
 import de.sos.rcp.log.RCPLog;
+import de.sos.rcp.mgr.CommandManager;
 import de.sos.rcp.mgr.LayoutManager;
 import de.sos.rcp.mgr.MenuManager;
 import de.sos.rcp.mgr.PropertyManager;
@@ -36,20 +37,35 @@ public class RCPApplication extends Application {
 	
 	
 	public static SelectionManager getSelectionManager() {
+		if (getInstance() == null)
+			return null;
 		return getInstance().mSelectionManager;
 	}
 	public static WindowManager getWindowManager() {
+		if (getInstance() == null)
+			return null;
 		return getInstance().mWindowManager;
 	}
 
 	public static MenuManager getMenuManager() {
+		if (getInstance() == null)
+			return null;
 		return getInstance().mMenuManager;
 	}
 	public static PropertyManager getPropertyManager(){
+		if (getInstance() == null)
+			return null;
 		return getInstance().mPropertyManager;
 	}
 	public static WizardManager getWizardManager() {
+		if (getInstance() == null)
+			return null;
 		return getInstance().mWizardManager;
+	}
+	public static CommandManager getCommandManager(){
+		if (getInstance() == null)
+			return null;
+		return getInstance().mCommandManager;
 	}
 	
 
@@ -61,7 +77,8 @@ public class RCPApplication extends Application {
 	private SelectionManager 	mSelectionManager;
 	private PropertyManager		mPropertyManager;
 	private WizardManager		mWizardManager;
-
+	private CommandManager		mCommandManager;
+	
 	public RCPApplication() {
 		theInstance = this;
 	}
@@ -71,6 +88,7 @@ public class RCPApplication extends Application {
 		mRootStation = AnchorageSystem.createStation();
 		
 		mPropertyManager = new PropertyManager(new File("settings.conf"));
+		mCommandManager = new CommandManager();
 		
 		mSelectionManager = new SelectionManager();
 		mWindowManager = new WindowManager();

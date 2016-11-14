@@ -21,6 +21,7 @@ import com.anchorage.system.AnchorageSystem;
 import de.sos.rcp.RCPApplication;
 import de.sos.rcp.action.AbstractAction;
 import de.sos.rcp.log.RCPLog;
+import de.sos.rcp.mgr.cmd.Command;
 import de.sos.rcp.ui.IEditor;
 import de.sos.rcp.ui.IUIElement;
 import de.sos.rcp.ui.IView;
@@ -362,5 +363,4 @@ public class WindowManager extends EventSource<WindowManager.WindowManagerEvent>
 	public IEditor getActiveEditor() {
 		return mActiveEditor;
 	}
-
 }

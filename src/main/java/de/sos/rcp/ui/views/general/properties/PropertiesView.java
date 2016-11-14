@@ -66,13 +66,15 @@ public class PropertiesView extends AbstractView implements IView, Consumer<Sele
 		RCPLog.trace("Receive Selection: " + t);
 		if (mPropertySheet != null){
 			mPropertySheet.getItems().clear();
-			ArrayList<Item> out = new ArrayList<Item>();
-			for (Object obj : t.getValues()){
-				Collection<Item> items = createItems(obj);
-				if (items != null && items.isEmpty() == false)
-					out.addAll(items);
+			if (t != null && t.getValues() != null){
+				ArrayList<Item> out = new ArrayList<Item>();
+				for (Object obj : t.getValues()){
+					Collection<Item> items = createItems(obj);
+					if (items != null && items.isEmpty() == false)
+						out.addAll(items);
+				}
+				mPropertySheet.getItems().addAll(out);
 			}
-			mPropertySheet.getItems().addAll(out);
 		}
 		
 	}

@@ -1,14 +1,19 @@
 package de.sos.rcp.ui.editor;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
+import java.util.function.Consumer;
+
+import org.reactfx.Subscription;
 
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.node.events.DockNodeEvent;
 
 import de.sos.rcp.RCPApplication;
 import de.sos.rcp.action.AbstractAction;
+import de.sos.rcp.mgr.cmd.Command;
 import de.sos.rcp.ui.impl.AbstractEditor;
 import javafx.event.Event;
 import javafx.event.EventHandler;
@@ -19,7 +24,14 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 
 	private File 			mFile;
 
-	private boolean			mDirty = false;
+	private boolean			mDirty = true;
+	
+	private Consumer<Command> 	mMarkDirtyConsumer = new Consumer<Command>() { //need a variable to register and deregister the consumer		
+		@Override
+		public void accept(Command t) {
+			markDirty();
+		}
+	};
 	
 	private AbstractAction	mSaveAction = new AbstractAction("Save") {
 		@Override
@@ -33,6 +45,8 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 			saveAs();
 		}
 	};
+
+	private Subscription mMarkDirtySubscription;
 	
 	public AbstractFileEditor(File file, String type, String uuid) {
 		super(file != null ? file.getName() : "", type, uuid);
@@ -43,6 +57,7 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 		
 		RCPApplication.getMenuManager().addToolbarAction("Save", mSaveAction);
 		RCPApplication.getMenuManager().addToolbarAction("SaveAs", mSaveAsAction);
+	
 	}
 
 	
@@ -60,6 +75,7 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 	@Override
 	public void setDockNode(DockNode dock) {
 		super.setDockNode(dock);
+		//FIXME: Not called anymore
 		dock.addEventFilter(DockNodeEvent.FOCUS, new EventHandler<Event>() {
 			@Override
 			public void handle(Event event) {
@@ -74,19 +90,28 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 	protected void onEditorDeactivated() {
 		mSaveAction.deactivate();
 		mSaveAsAction.deactivate();
+		
+		//unsubscribe from change events, as long as we have no focus
+		if (mMarkDirtySubscription != null){
+			mMarkDirtySubscription.unsubscribe();
+			mMarkDirtySubscription = null;
+		}
 	}
 
 	protected void onEditorActivated() {
 		mSaveAction.activate();
 		mSaveAsAction.activate();
+		
+		//subscribe for editing commands, that did modify the underlying model. 
+		//at this point, we do not care about the actual change but use the command only to 
+		//indicate if we got some changes or not, to mark the editor dirty. 
+		mMarkDirtySubscription = RCPApplication.getCommandManager().successionEnds(Duration.ofMillis(100)).subscribe(mMarkDirtyConsumer);
 	}
 
 	@Override
 	public void onClose() {
 		mSaveAction.deactivate();
 		mSaveAsAction.deactivate();
-//		RCPApplication.getMenuManager().removeAction(mSaveAction);
-//		RCPApplication.getMenuManager().removeAction(mSaveAsAction);
 	}
 
 
@@ -112,7 +137,7 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 			if (b)
 				t+="*";
 			mDockNode.getContent().titleProperty().set(t);
-			mSaveAction.activate(!b);
+			mSaveAction.enable(b);
 			mDirty = b;
 		}		
 	}

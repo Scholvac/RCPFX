@@ -48,6 +48,9 @@ public abstract class AbstractAction implements IAction {
 	public void setLabel(String string) {
 		mLabel = string;		
 	}
+	public void enable(boolean b) {
+		mEnabled.set(b);		
+	}
 	
 	
 
