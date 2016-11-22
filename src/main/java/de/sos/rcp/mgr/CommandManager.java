@@ -6,7 +6,6 @@ import org.reactfx.EventSource;
 
 import de.sos.rcp.RCPApplication;
 import de.sos.rcp.log.RCPLog;
-import de.sos.rcp.mgr.cmd.AbstractCommand;
 import de.sos.rcp.mgr.cmd.Command;
 import javafx.application.Platform;
 /**
@@ -42,6 +41,7 @@ public class CommandManager extends EventSource<Command>{
 	 * do the actual execution of the command 
 	 * and notify all listeners if the command has been executed normaly
 	 */
+	@Override
 	public void emit(Command value) {
 		try{ 
 			if (value.execute()){				
@@ -68,7 +68,8 @@ public class CommandManager extends EventSource<Command>{
 			if (Platform.isFxApplicationThread())
 				cmdMgr.push(cmd);
 			else
-				Platform.runLater(new Runnable(){public void run(){cmdMgr.push(cmd);}});
+				Platform.runLater(new Runnable(){@Override
+				public void run(){cmdMgr.push(cmd);}});
 		else
 			cmd.execute();
 	}

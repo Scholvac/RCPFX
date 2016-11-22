@@ -2,8 +2,6 @@
 package de.sos.rcp.wizard;
 
 import java.io.File;
-import java.util.Collection;
-
 import org.controlsfx.dialog.WizardPane;
 
 import javafx.scene.control.Button;

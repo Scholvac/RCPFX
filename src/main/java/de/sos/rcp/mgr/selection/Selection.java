@@ -1,7 +1,5 @@
 package de.sos.rcp.mgr.selection;
 
-import org.controlsfx.control.PropertySheet.Item;
-
 /**
  * Describes a selected element, that has somewhere been selected and most probabliy been published through the 
  * SelectionManager. 

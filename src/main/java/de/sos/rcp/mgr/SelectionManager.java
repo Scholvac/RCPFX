@@ -1,10 +1,7 @@
 package de.sos.rcp.mgr;
 
-import java.util.function.Consumer;
-
 import org.reactfx.EventSource;
 
-import de.sos.rcp.RCPApplication;
 import de.sos.rcp.mgr.selection.Selection;
 
 

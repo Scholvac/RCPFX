@@ -1,16 +1,12 @@
 package de.sos.rcp.mgr;
 
 import java.io.File;
-import java.io.ObjectOutputStream.PutField;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map.Entry;
 
 import org.reactfx.EventSource;
-import org.w3c.dom.events.UIEvent;
-
 import com.anchorage.docks.node.DockNode;
 import com.anchorage.docks.node.DockNode.DockPosition;
 import com.anchorage.docks.node.events.DockNodeEvent;
@@ -21,12 +17,10 @@ import com.anchorage.system.AnchorageSystem;
 import de.sos.rcp.RCPApplication;
 import de.sos.rcp.action.AbstractAction;
 import de.sos.rcp.log.RCPLog;
-import de.sos.rcp.mgr.cmd.Command;
 import de.sos.rcp.ui.IEditor;
 import de.sos.rcp.ui.IUIElement;
 import de.sos.rcp.ui.IView;
 import de.sos.rcp.ui.editor.AbstractFileEditor;
-import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.event.Event;
 import javafx.event.EventHandler;
 import javafx.stage.Stage;

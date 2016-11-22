@@ -1,7 +1,5 @@
 package de.sos.rcp.mgr.cmd;
 
-import de.sos.rcp.mgr.cmd.Command.UndoCommand;
-
 public abstract class AbstractCommand implements Command {
 	private String mName = null;
 	private UndoCommand	mUndoCmd = null;
