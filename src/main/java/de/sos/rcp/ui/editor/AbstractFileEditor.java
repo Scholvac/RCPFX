@@ -172,8 +172,13 @@ public abstract class AbstractFileEditor extends AbstractEditor {
 		}
 		List<String> extensions = getFileExtensions();
 		if (extensions != null && extensions.isEmpty() == false)
-			fc.setSelectedExtensionFilter(new ExtensionFilter("", getFileExtensions()));
+			fc.setSelectedExtensionFilter(new ExtensionFilter("Save File", getFileExtensions()));
 		File result = fc.showSaveDialog(null);
+		if (result != null){
+			if (result.isFile() && result.getParentFile().isDirectory() && !result.getParentFile().exists())
+				result.getParentFile().mkdirs();
+			saveAs(result);
+		}
 	}
 	
 	public void save(){
